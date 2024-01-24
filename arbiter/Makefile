@@ -3,6 +3,7 @@ default: arbiter.vcd
 
 .stamp: arbiter.v arbiter_tb.cpp
 	verilator -Wall --trace \
+	  --language 1364-2001 \
 	  --cc arbiter.v --exe arbiter_tb.cpp
 	touch .stamp
 
