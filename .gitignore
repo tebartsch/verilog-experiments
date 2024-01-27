@@ -1,6 +1,4 @@
 obj_dir
 *.vcd
 .stamp
-.stamp.verilate
-nano-cpu/waves
 .vscode
