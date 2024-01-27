@@ -11,3 +11,12 @@ Sources:
  - [hdlbits verilog tutorial](https://hdlbits.01xz.net/wiki/Main_Page)
  
  - [build cpu notes](https://github.com/hughperkins/cpu-tutorial)
+
+ - [ultraembedded/riscv](https://github.com/ultraembedded/riscv)
+   RISC-V CPU core in Verilog
+
+## Build
+
+```bash
+make --jobs=<jobs>
+```

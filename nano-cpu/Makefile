@@ -22,7 +22,7 @@ waves-%: waves/%.vcd
 	surfer $<
 
 .PHONY: waves/%.vcd
-waves/%.vcd: obj_dir/stamp.sim_compile-%
+waves/%.vcd: obj_dir/stamp.sim_compile-% programs
 	cd waves && ./../obj_dir/$*/V$* +verilator+rand+reset+2
 
 .PRECIOUS: obj_dir/stamp.sim_compile-%
@@ -49,7 +49,12 @@ obj_dir/stamp.verilate-%: %.v %_tb.cpp
 lint-%: %.v
 	verilator --lint-only $<
 
+.PHONY: programs
+programs:
+	$(MAKE) -C programs
+
 .PHONY: clean
 clean:
 	rm -rf obj_dir
 	rm -rf waves
+	$(MAKE) -C programs clean
