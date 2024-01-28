@@ -1,38 +1,4 @@
-// R-type instructions:
-//   
-//   31     24  19  14  12 11 6    0
-//   funct7 rs2 rs1 funct3 rd opcode
-`define RV32_ADD_OPCODE 7'b0110011
-`define RV32_ADD_FUNCT3 3'b000
-`define RV32_ADD_FUNCT7 7'b0000000
-
-function is_r_type_instr;
-  input [ 6:0] opcode;
-  input [ 2:0] funct3;
-  input [ 6:0] funct7;
-  begin
-    is_r_type_instr = 
-      (opcode == `RV32_ADD_OPCODE 
-       && funct3 == `RV32_ADD_FUNCT3
-       && funct7 == `RV32_ADD_FUNCT7);
-  end
-endfunction
-
-// I-type instructions:
-//   
-//   31    20   19  14  12 11 6    0
-//   imm[11:0]  rs1 funct3 rd opcode
-`define RV32_ADDI_OPCODE 7'b0010011
-`define RV32_ADDI_FUNCT3 3'b000
-
-function is_i_type_instr;
-  input [ 6:0] opcode;
-  input [ 2:0] funct3;
-  begin
-    is_i_type_instr =
-      (opcode == `RV32_ADDI_OPCODE && funct3 == `RV32_ADDI_FUNCT3);
-  end
-endfunction
+`include "defs.v"
 
 module proc (
     input clk,
@@ -54,10 +20,12 @@ module proc (
   wire [ 4:0] instr_rs2 = instruction[24:20];
   wire [ 6:0] instr_funct7 = instruction[31:25];
 
+  wire is_i_type_instr_w = is_i_type_instr(instr_opcode, instr_funct3);
+
   // This wire is high if an invalid instruction is fetched.
   wire invalid_instr = !(
     is_r_type_instr(instr_opcode, instr_funct3, instr_funct7) || 
-    is_i_type_instr(instr_opcode, instr_funct3)
+    is_i_type_instr_w
   );
   always @(posedge clk, posedge rst) begin
     if (rst) begin
@@ -82,13 +50,12 @@ module proc (
   // Control Signals
   //===------------------------------------------------------------------===//
   // This wire is hight if the second input to the ALU is an immediate value.
-  wire alu_input_b_is_immediate = is_i_type_instr(instr_opcode, instr_funct3);
+  wire alu_input_b_is_immediate = is_i_type_instr_w;
 
   //===------------------------------------------------------------------===//
   // Register File
   //===------------------------------------------------------------------===//
 
-  /* verilator lint_off UNUSED */
   reg  [31:0] reg0_zero = 32'h00000000;
   reg  [31:0] reg1_ra = 32'h00000000;
   reg  [31:0] reg2_sp = 32'h00000000;
@@ -121,11 +88,11 @@ module proc (
   reg  [31:0] reg29_t4 = 32'h00000000;
   reg  [31:0] reg30_t5 = 32'h00000000;
   reg  [31:0] reg31_t6 = 32'h00000000;
-  /* verilator lint_on UNUSED */
 
   reg  [31:0] reg_rs1;
   always @* begin
     case (instr_rs1)
+      5'd0: reg_rs1 = reg0_zero;
       5'd1: reg_rs1 = reg1_ra;
       5'd2: reg_rs1 = reg2_sp;
       5'd3: reg_rs1 = reg3_gp;
@@ -164,6 +131,7 @@ module proc (
   reg  [31:0] reg_rs2;
   always @* begin
     case (instr_rs2)
+      5'd0: reg_rs2 = reg0_zero;
       5'd1: reg_rs2 = reg1_ra;
       5'd2: reg_rs2 = reg2_sp;
       5'd3: reg_rs2 = reg3_gp;
