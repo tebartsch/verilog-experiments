@@ -2,10 +2,21 @@
 
 MODULES := proc alu
 
+RISCV_GNU_TOOLCHAIN_VERSION := 8c969a9efe68a811cf524174d25255632029f3d3
+
+RISCV := $(abspath sw/riscv-tools)
+MKFILE_ABSDIR := $(abspath .)
+
 WAVEFORMS = $(addprefix waves/, $(addsuffix .vcd, $(MODULES)))
 
+default: sw/proc-run riscv-tools
+
+# Compile the CPU simulation binary
+sw/proc-run: obj_dir/stamp.sim_compile-proc
+	ln -sf $(MKFILE_ABSDIR)/obj_dir/proc/Vproc sw/proc-run
+
 .PHONY:test
-test: $(WAVEFORMS)
+test: $(WAVEFORMS) sw-test
 
 .PHONY: verilate
 verilate: $(addprefix obj_dir/stamp.verilate-, $(MODULES))
@@ -22,14 +33,15 @@ waves-%: waves/%.vcd
 	surfer $<
 
 .PHONY: waves/%.vcd
-waves/%.vcd: obj_dir/stamp.sim_compile-% programs
-	cd waves && ./../obj_dir/$*/V$* +verilator+rand+reset+2
+waves/%.vcd: obj_dir/stamp.sim_compile-%
+	@mkdir -p waves
+	./obj_dir/$*/V$* +verilator+rand+reset+2 \
+	  --instructions=none \
+	  --vcd-path=waves/$*.vcd 
 
 .PRECIOUS: obj_dir/stamp.sim_compile-%
 obj_dir/stamp.sim_compile-%: obj_dir/stamp.verilate-%
 	make -C obj_dir/$* -f V$*.mk V$*
-	@mkdir -p waves
-	cd waves && ./../obj_dir/$*/V$* +verilator+rand+reset+2
 	@touch obj_dir/stamp.sim_compile-$*
 
 .PRECIOUS: obj_dir/stamp.verilate-%
@@ -49,12 +61,32 @@ obj_dir/stamp.verilate-%: %.v %_tb.cpp
 lint-%: %.v
 	verilator --lint-only $<
 
-.PHONY: programs
-programs:
-	$(MAKE) -C programs
+.PHONY: sw-test
+sw-test: sw/proc-run
+	$(MAKE) -C sw test
+
+.PHONY: sw
+sw: riscv-tools
+	$(MAKE) -C sw
+
+.PHONY: riscv-tools
+riscv-tools:
+	if [ -d sw/riscv-gnu-toolchain ]; then \
+	  git -C sw/riscv-gnu-toolchain fetch; \
+	else \
+	  git clone https://github.com/riscv-collab/riscv-gnu-toolchain \
+	    sw/riscv-gnu-toolchain; \
+	fi
+	git -C sw/riscv-gnu-toolchain checkout $(RISCV_GNU_TOOLCHAIN_VERSION)
+	mkdir -p sw/riscv-gnu-toolchain/build
+	cd sw/riscv-gnu-toolchain/build && \
+	  ../configure --prefix=$(RISCV) \
+	    --with-arch=rv32i --with-abi=ilp32 \
+	    --disable-linux
+	$(MAKE) -C sw/riscv-gnu-toolchain/build
 
 .PHONY: clean
 clean:
 	rm -rf obj_dir
 	rm -rf waves
-	$(MAKE) -C programs clean
+	$(MAKE) -C sw clean

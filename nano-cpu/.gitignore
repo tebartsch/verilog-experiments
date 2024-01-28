@@ -1,6 +1,9 @@
 obj_dir
 waves
-programs/riscv-gnu-toolchain
-programs/riscv-tools
-*.img
-*.elf
+
+sw/*.img
+sw/*.elf
+sw/proc-run
+sw/riscv-gnu-toolchain
+sw/riscv-tools
+sw/waves

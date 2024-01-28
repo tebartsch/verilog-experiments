@@ -22,8 +22,21 @@ Sources:
 
  - Patterson and Hennessy, Computer Organization and Design: The Hardware/Software Interface RISC-V Edition
 
+## Packages
+
+Fedora/RHEL:
+
+```bash
+dnf install verilator
+dnf install llvm # Provides FileCheck tool
+```
+
 ## Build
 
 ```bash
+# This builds the verilator simulation executable of the processor as well as
+# a riscv toolchain used to compile test programs.
 make --jobs=<jobs>
+# Run all tests
+make test
 ```

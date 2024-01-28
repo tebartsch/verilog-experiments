@@ -2,6 +2,8 @@
 // https://github.com/n-kremeris/verilator_basics/blob/main/tb_alu.cpp (MIT
 // License)
 
+#include "verilator_common.h"
+
 #include "Valu.h"
 #include <iostream>
 #include <verilated.h>
@@ -148,13 +150,18 @@ void dut_reset(Valu *dut) {
 }
 
 int main(int argc, char **argv, char **env) {
+  std::string vcd_path = get_vcd_path(argc, argv);
+  bool dump_vcd = vcd_path != "";
+
   Verilated::commandArgs(argc, argv);
   Valu *dut = new Valu;
 
   Verilated::traceEverOn(true);
   VerilatedVcdC *m_trace = new VerilatedVcdC;
-  dut->trace(m_trace, /*levels=*/5);
-  m_trace->open("alu.vcd");
+  if (dump_vcd) {
+    dut->trace(m_trace, /*levels=*/5);
+    m_trace->open(vcd_path.c_str());
+  }
 
   AluInDrv *drv = new AluInDrv(dut);
   AluScb *scb = new AluScb();
@@ -180,13 +187,16 @@ int main(int argc, char **argv, char **env) {
       outMon->monitor();
     }
 
-    m_trace->dump(sim_time);
+    if (dump_vcd)
+      m_trace->dump(sim_time);
     sim_time++;
   }
 
   int error_count = scb->get_error_count();
 
-  m_trace->close();
+  if (dump_vcd)
+    m_trace->close();
+
   delete dut;
   delete outMon;
   delete inMon;
