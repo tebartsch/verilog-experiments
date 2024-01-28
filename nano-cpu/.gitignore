@@ -3,6 +3,7 @@ waves
 
 sw/*.img
 sw/*.elf
+sw/build
 sw/proc-run
 sw/riscv-gnu-toolchain
 sw/riscv-tools

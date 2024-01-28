@@ -9,11 +9,7 @@ MKFILE_ABSDIR := $(abspath .)
 
 WAVEFORMS = $(addprefix waves/, $(addsuffix .vcd, $(MODULES)))
 
-default: sw/proc-run riscv-tools
-
-# Compile the CPU simulation binary
-sw/proc-run: obj_dir/stamp.sim_compile-proc
-	ln -sf $(MKFILE_ABSDIR)/obj_dir/proc/Vproc sw/proc-run
+default: riscv-tools sw sw/proc-run 
 
 .PHONY:test
 test: $(WAVEFORMS) sw-test
@@ -61,13 +57,34 @@ obj_dir/stamp.verilate-%: %.v %_tb.cpp
 lint-%: %.v
 	verilator --lint-only $<
 
-.PHONY: sw-test
-sw-test: sw/proc-run
-	$(MAKE) -C sw test
+# Provide simulation binary in directory `sw`
+sw/proc-run: obj_dir/stamp.sim_compile-proc
+	ln -sf $(MKFILE_ABSDIR)/obj_dir/proc/Vproc sw/proc-run
 
 .PHONY: sw
-sw: riscv-tools
+sw: riscv-tools sw/proc-run
 	$(MAKE) -C sw
+
+.PHONY: sw-test
+sw-test: sw/proc-run sw
+	$(MAKE) -C sw test
+
+# Run a program in directory `sw`
+sw/%-run: sw/proc-run
+	$(MAKE) -C sw $*-run
+
+# View waveforms for a program in directory `sw`
+sw/%-waves: sw/proc-run
+    # Remove existing waveform file since the processor simulator binary
+    # could have changed
+	if [ -f sw/waves/$*.vcd ]; then \
+	  rm sw/waves/$*.vcd; \
+	fi
+	$(MAKE) -C sw $*-waves
+
+# Run a test in directory `sw`
+sw/%-test: sw/proc-run
+	$(MAKE) -C sw $*-test
 
 .PHONY: riscv-tools
 riscv-tools:
@@ -89,4 +106,5 @@ riscv-tools:
 clean:
 	rm -rf obj_dir
 	rm -rf waves
+	rm -f sw/proc-run
 	$(MAKE) -C sw clean

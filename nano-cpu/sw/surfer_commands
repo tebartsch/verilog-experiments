@@ -1,0 +1,18 @@
+# Common commands to run on startup on the surfer waveform viewer
+
+signal_add TOP.clk
+signal_add TOP.rst
+signal_add TOP.proc.pc
+signal_add TOP.proc.instruction
+signal_add TOP.proc.invalid_instr
+signal_add TOP.proc.reg_rs1
+signal_add TOP.proc.reg_rs2
+signal_add TOP.proc.reg_rd
+
+divider_add
+
+signal_add TOP.proc.u_alu.in_valid
+signal_add TOP.proc.u_alu.a_in
+signal_add TOP.proc.u_alu.b_in
+signal_add TOP.proc.u_alu.out_valid
+signal_add TOP.proc.u_alu.out

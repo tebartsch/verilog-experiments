@@ -31,6 +31,16 @@ dnf install verilator
 dnf install llvm # Provides FileCheck tool
 ```
 
+The `Makefile` includes targets that directly open `.vcd` files
+with [surfer](https://gitlab.com/surfer-project/surfer). Install with
+
+```bash
+cargo install \
+  --git https://gitlab.com/surfer-project/surfer \
+  --rev bfa7b6d603e6d8b160859dd4fdf668742371f4c8 \
+  surfer
+```
+
 ## Build
 
 ```bash
@@ -40,3 +50,16 @@ make --jobs=<jobs>
 # Run all tests
 make test
 ```
+
+## Development
+
+```bash
+# Run program
+make sw/<testname>-run
+# Run program while dumping waveforms and open waveform viewer
+make sw/<testname>-waves
+# Run program and check output
+make sw/<testname>
+```
+
+where <testname> is the name of the program in the `sw` directory, i.e. `addi`.
