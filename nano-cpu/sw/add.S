@@ -1,18 +1,20 @@
-addi sp, zero, 0x51
-addi a0, zero, 0x17
-addi s2, zero, 0x09
-addi t5, zero, 0x13
+addi t0, zero, 0x5
+addi t1, zero, 0x4
+add t2, t0, t1
+nop
+addi t3, zero,  0x3
+add t3, t3, t3
 
 # CHECK: ra = 0x0
-# CHECK: sp = 0x51
+# CHECK: sp = 0x0
 # CHECK: gp = 0x0
 # CHECK: tp = 0x0
-# CHECK: t0 = 0x0
-# CHECK: t1 = 0x0
-# CHECK: t2 = 0x0
+# CHECK: t0 = 0x5
+# CHECK: t1 = 0x4
+# CHECK: t2 = 0x9
 # CHECK: s0 = 0x0
 # CHECK: s1 = 0x0
-# CHECK: a0 = 0x17
+# CHECK: a0 = 0x0
 # CHECK: a1 = 0x0
 # CHECK: a2 = 0x0
 # CHECK: a3 = 0x0
@@ -20,7 +22,7 @@ addi t5, zero, 0x13
 # CHECK: a5 = 0x0
 # CHECK: a6 = 0x0
 # CHECK: a7 = 0x0
-# CHECK: s2 = 0x9
+# CHECK: s2 = 0x0
 # CHECK: s3 = 0x0
 # CHECK: s4 = 0x0
 # CHECK: s5 = 0x0
@@ -30,7 +32,7 @@ addi t5, zero, 0x13
 # CHECK: s9 = 0x0
 # CHECK: s10 = 0x0
 # CHECK: s11 = 0x0
-# CHECK: t3 = 0x0
+# CHECK: t3 = 0x6
 # CHECK: t4 = 0x0
-# CHECK: t5 = 0x13
+# CHECK: t5 = 0x0
 # CHECK: t6 = 0x0

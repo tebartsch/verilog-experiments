@@ -1,9 +1,38 @@
+// R-type instructions:
+//   
+//   31     24  19  14  12 11 6    0
+//   funct7 rs2 rs1 funct3 rd opcode
+`define RV32_ADD_OPCODE 7'b0110011
+`define RV32_ADD_FUNCT3 3'b000
+`define RV32_ADD_FUNCT7 7'b0000000
+
+function is_r_type_instr;
+  input [ 6:0] opcode;
+  input [ 2:0] funct3;
+  input [ 6:0] funct7;
+  begin
+    is_r_type_instr = 
+      (opcode == `RV32_ADD_OPCODE 
+       && funct3 == `RV32_ADD_FUNCT3
+       && funct7 == `RV32_ADD_FUNCT7);
+  end
+endfunction
+
 // I-type instructions:
 //   
-//   31    25   24  14  12 11 6    0
+//   31    20   19  14  12 11 6    0
 //   imm[11:0]  rs1 funct3 rd opcode
-`define RV32_ADDI      32'b000_00000_0010011
-`define RV32_ADDI_MASK 32'b111_00000_1111111
+`define RV32_ADDI_OPCODE 7'b0010011
+`define RV32_ADDI_FUNCT3 3'b000
+
+function is_i_type_instr;
+  input [ 6:0] opcode;
+  input [ 2:0] funct3;
+  begin
+    is_i_type_instr =
+      (opcode == `RV32_ADDI_OPCODE && funct3 == `RV32_ADDI_FUNCT3);
+  end
+endfunction
 
 module proc (
     input clk,
@@ -15,31 +44,45 @@ module proc (
   // Instruction Fetch
   //===------------------------------------------------------------------===//
 
-  // Wait until ALU finishes before fetching next instruction
-  reg executing_instruction = 1'b0;
-
   reg [31:0] pc;
   reg [31:0] instruction;
+
+  wire [ 6:0] instr_opcode = instruction[6:0];
+  wire [ 4:0] instr_rd = instruction[11:7];
+  wire [ 2:0] instr_funct3 = instruction[14:12];
+  wire [ 4:0] instr_rs1 = instruction[19:15];
+  wire [ 4:0] instr_rs2 = instruction[24:20];
+  wire [ 6:0] instr_funct7 = instruction[31:25];
+
+  // This wire is high if an invalid instruction is fetched.
+  wire invalid_instr = !(
+    is_r_type_instr(instr_opcode, instr_funct3, instr_funct7) || 
+    is_i_type_instr(instr_opcode, instr_funct3)
+  );
   always @(posedge clk, posedge rst) begin
     if (rst) begin
       pc <= '0;
       instruction <= instruction_memory[32'h0];
+      alu_in_valid <= 1'b1;
     end else begin
-      if ((instruction & `RV32_ADDI_MASK) == `RV32_ADDI) begin
-        if (executing_instruction) begin
-          alu_in_valid <= 1'b0;
-        end else begin
-          alu_in_valid <= 1'b1;
-          executing_instruction <= 1'b1;
+      if (!invalid_instr) begin
+        if (alu_in_valid) begin
+          alu_in_valid <= !alu_in_valid;
         end
         if (alu_out_valid) begin
           pc <= pc + 32'h1;
-          executing_instruction <= 1'b0;
+          alu_in_valid <= 1'b1;
           instruction <= instruction_memory[pc + 32'h1];
         end
       end
     end
   end
+
+  //===------------------------------------------------------------------===//
+  // Control Signals
+  //===------------------------------------------------------------------===//
+  // This wire is hight if the second input to the ALU is an immediate value.
+  wire alu_input_b_is_immediate = is_i_type_instr(instr_opcode, instr_funct3);
 
   //===------------------------------------------------------------------===//
   // Register File
@@ -80,7 +123,6 @@ module proc (
   reg  [31:0] reg31_t6 = 32'h00000000;
   /* verilator lint_on UNUSED */
 
-  wire [ 4:0] instr_rs1 = instruction[19:15];
   reg  [31:0] reg_rs1;
   always @* begin
     case (instr_rs1)
@@ -119,7 +161,44 @@ module proc (
     endcase
   end
 
-  wire [ 4:0] instr_rd = instruction[11:7];
+  reg  [31:0] reg_rs2;
+  always @* begin
+    case (instr_rs2)
+      5'd1: reg_rs2 = reg1_ra;
+      5'd2: reg_rs2 = reg2_sp;
+      5'd3: reg_rs2 = reg3_gp;
+      5'd4: reg_rs2 = reg4_tp;
+      5'd5: reg_rs2 = reg5_t0;
+      5'd6: reg_rs2 = reg6_t1;
+      5'd7: reg_rs2 = reg7_t2;
+      5'd8: reg_rs2 = reg8_s0;
+      5'd9: reg_rs2 = reg9_s1;
+      5'd10: reg_rs2 = reg10_a0;
+      5'd11: reg_rs2 = reg11_a1;
+      5'd12: reg_rs2 = reg12_a2;
+      5'd13: reg_rs2 = reg13_a3;
+      5'd14: reg_rs2 = reg14_a4;
+      5'd15: reg_rs2 = reg15_a5;
+      5'd16: reg_rs2 = reg16_a6;
+      5'd17: reg_rs2 = reg17_a7;
+      5'd18: reg_rs2 = reg18_s2;
+      5'd19: reg_rs2 = reg19_s3;
+      5'd20: reg_rs2 = reg20_s4;
+      5'd21: reg_rs2 = reg21_s5;
+      5'd22: reg_rs2 = reg22_s6;
+      5'd23: reg_rs2 = reg23_s7;
+      5'd24: reg_rs2 = reg24_s8;
+      5'd25: reg_rs2 = reg25_s9;
+      5'd26: reg_rs2 = reg26_s10;
+      5'd27: reg_rs2 = reg27_s11;
+      5'd28: reg_rs2 = reg28_t3;
+      5'd29: reg_rs2 = reg29_t4;
+      5'd30: reg_rs2 = reg30_t5;
+      5'd31: reg_rs2 = reg31_t6;
+      default: reg_rs2 = 32'h00000000;
+    endcase
+  end
+
   wire [31:0] reg_rd;
   wire reg_rd_valid = alu_out_valid;
   always @ (posedge clk) begin
@@ -193,7 +272,8 @@ module proc (
   reg alu_in_valid;
   reg alu_out_valid;
 
-  wire [31:0] alu_input_b = i_type_instr_immediate;
+  wire [31:0] alu_input_b = 
+    alu_input_b_is_immediate ? i_type_instr_immediate : reg_rs2;
 
   alu u_alu (
       .clk(clk),
