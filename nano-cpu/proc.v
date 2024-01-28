@@ -240,8 +240,17 @@ module proc (
   reg alu_in_valid;
   reg alu_out_valid;
 
-  wire [31:0] alu_input_b = 
-    alu_input_b_is_immediate ? i_type_instr_immediate : reg_rs2;
+  // The second input of the ALU is 
+  //  - an immediate value for I-type instructions
+  //  - the value of register reg_rs2 for R-type instructions which
+  //    optionally can be inverted
+  wire invert_alu_input_b = instr_funct7[5];
+  wire [31:0] reg_rs2_inverted = ~reg_rs2 + 1;
+  wire [31:0] reg_rs2_maybe_inverted = 
+    invert_alu_input_b ? reg_rs2_inverted : reg_rs2;
+  wire [31:0] alu_input_b = alu_input_b_is_immediate 
+      ? i_type_instr_immediate
+      : reg_rs2_maybe_inverted;
 
   alu u_alu (
       .clk(clk),

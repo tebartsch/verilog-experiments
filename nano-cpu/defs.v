@@ -7,6 +7,10 @@
 `define RV32_ADD_FUNCT3 3'b000
 `define RV32_ADD_FUNCT7 7'b0000000
 
+`define RV32_SUB_OPCODE 7'b0110011
+`define RV32_SUB_FUNCT3 3'b000
+`define RV32_SUB_FUNCT7 7'b0100000
+
 // I-type instructions:
 //   
 //   31    20   19  14  12 11 6    0
@@ -15,7 +19,7 @@
 `define RV32_ADDI_OPCODE 7'b0010011
 `define RV32_ADDI_FUNCT3 3'b000
 
-// Helper functions
+// Helper functions checking for the type of a instruction
 
 function is_r_type_instr;
   input [ 6:0] opcode;
@@ -25,7 +29,10 @@ function is_r_type_instr;
     is_r_type_instr = 
       (opcode == `RV32_ADD_OPCODE 
        && funct3 == `RV32_ADD_FUNCT3
-       && funct7 == `RV32_ADD_FUNCT7);
+       && funct7 == `RV32_ADD_FUNCT7) ||
+      (opcode == `RV32_SUB_OPCODE
+       && funct3 == `RV32_SUB_FUNCT3
+       && funct7 == `RV32_SUB_FUNCT7);
   end
 endfunction
 
