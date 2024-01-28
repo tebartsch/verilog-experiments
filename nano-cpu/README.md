@@ -12,8 +12,15 @@ Sources:
  
  - [build cpu notes](https://github.com/hughperkins/cpu-tutorial)
 
+ - [ataradov/riscv](https://github.com/ataradov/riscv) very simple RISC-V CPU
+   core in Verilog
+
  - [ultraembedded/riscv](https://github.com/ultraembedded/riscv)
-   RISC-V CPU core in Verilog
+   complex RISC-V CPU core in Verilog
+
+ - [RISC-V Reference Data Card ("Green Card")](https://inst.eecs.berkeley.edu/~cs61c/fa17/img/riscvcard.pdf)
+
+ - Patterson and Hennessy, Computer Organization and Design: The Hardware/Software Interface RISC-V Edition
 
 ## Build
 
