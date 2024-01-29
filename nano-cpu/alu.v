@@ -4,6 +4,9 @@ module alu (
     input clk,
     input rst,
 
+    input        funct3_valid,
+    input  [2:0] funct3,
+
     input  [31:0]  a_in,
     input  [31:0]  b_in,
     input          in_valid,
@@ -34,7 +37,16 @@ module alu (
     always @ (in_valid_r, a_in_r, b_in_r) begin
         result = '0;
         if (in_valid_r) begin
-            result = a_in_r + b_in_r;
+            if (funct3_valid) begin 
+              case (funct3)
+                3'b111:
+                  result = a_in_r & b_in_r;
+                default: 
+                  result = a_in_r + b_in_r;
+              endcase
+            end else begin
+              result = b_in_r;
+            end
         end
     end
 

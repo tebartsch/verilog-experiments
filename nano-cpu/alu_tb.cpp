@@ -21,6 +21,8 @@ vluint64_t sim_time = 0;
 //===----------------------------------------------------------------------===//
 
 struct AluInTx {
+  bool funct3_valid;
+  uint32_t funct3;
   uint32_t a;
   uint32_t b;
 };
@@ -53,13 +55,36 @@ public:
     in = in_q.front();
     in_q.pop_front();
 
-    if (in->a + in->b != tx->out) {
-      std::cerr << std::endl;
-      std::cerr << "AluScb: mismatch" << std::endl;
-      std::cerr << "  Expected: " << in->a + in->b << "  Actual: " << tx->out
-                << std::endl;
-      std::cerr << "  Simtime: " << sim_time << std::endl;
-      error_count++;
+    if (in->funct3_valid) {
+      switch (in->funct3) {
+      case 0b111:
+        if (in->a & in->b != tx->out) {
+          std::cerr << std::endl;
+          std::cerr << "AluScb: & mismatch" << std::endl;
+          std::cerr << "  Expected: " << (in->a & in->b)
+                    << "  Actual: " << tx->out << std::endl;
+          std::cerr << "  Simtime: " << sim_time << std::endl;
+          error_count++;
+        }
+      default:
+        if (in->a + in->b != tx->out) {
+          std::cerr << std::endl;
+          std::cerr << "AluScb: add mismatch" << std::endl;
+          std::cerr << "  Expected: " << in->a + in->b
+                    << "  Actual: " << tx->out << std::endl;
+          std::cerr << "  Simtime: " << sim_time << std::endl;
+          error_count++;
+        }
+      }
+    } else {
+      if (in->b != tx->out) {
+        std::cerr << std::endl;
+        std::cerr << "AluScb: forward input b mismatch" << std::endl;
+        std::cerr << "  Expected: " << in->b << "  Actual: " << tx->out
+                  << std::endl;
+        std::cerr << "  Simtime: " << sim_time << std::endl;
+        error_count++;
+      }
     }
 
     delete in;
@@ -103,7 +128,11 @@ public:
 
   void monitor() {
     if (dut->in_valid == 1) {
-      AluInTx *tx = new AluInTx{.a = dut->a_in, .b = dut->b_in};
+      AluInTx *tx =
+          new AluInTx{.funct3_valid = static_cast<bool>(dut->funct3_valid),
+                      .funct3 = dut->funct3,
+                      .a = dut->a_in,
+                      .b = dut->b_in};
       scb->writeIn(tx);
     }
   }
