@@ -41,6 +41,9 @@
 `define RV32_BEQ_OPCODE 7'b1100011
 `define RV32_BEQ_FUNCT3 3'b000
 
+`define RV32_BNE_OPCODE 7'b1100011
+`define RV32_BNE_FUNCT3 3'b001
+
 `define RV32_BLT_OPCODE 7'b1100011
 `define RV32_BLT_FUNCT3 3'b100
 
@@ -101,7 +104,8 @@ function is_sb_type_instr;
   begin
     is_sb_type_instr =
       (opcode == `RV32_BEQ_OPCODE && funct3 == `RV32_BEQ_FUNCT3) ||
-      (opcode == `RV32_BLT_OPCODE && funct3 == `RV32_BLT_FUNCT3);
+      (opcode == `RV32_BLT_OPCODE && funct3 == `RV32_BLT_FUNCT3) ||
+      (opcode == `RV32_BNE_OPCODE && funct3 == `RV32_BNE_FUNCT3);
   end
 endfunction
 
