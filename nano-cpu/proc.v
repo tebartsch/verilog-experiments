@@ -23,7 +23,6 @@ module proc (
   wire is_u_type_instr_w = is_u_type_instr(instr_opcode);
   wire is_uj_type_instr_w = is_uj_type_instr(instr_opcode);
 
-  reg [31:0] branch_pc;
   wire branch = alu_out_valid && (
     ((instr_opcode == `RV32_BEQ_OPCODE) &&
       (instr_funct3 == `RV32_BEQ_FUNCT3) &&
@@ -31,8 +30,10 @@ module proc (
     ((instr_opcode == `RV32_BLT_OPCODE) &&
       (instr_funct3 == `RV32_BLT_FUNCT3) &&
       (reg_rd_value[31] == 1'b1)) ||
-    (instr_opcode == `RV32_JAL_OPCODE)
+    (instr_opcode == `RV32_JAL_OPCODE) ||
+    (instr_opcode == `RV32_JALR_OPCODE && instr_funct3 == `RV32_JALR_FUNCT3)
   );
+  reg [31:0] branch_pc;
   always @* begin
     branch_pc = 32'h0;
     if (instr_opcode == `RV32_LW_OPCODE && 
@@ -46,7 +47,12 @@ module proc (
         memory[alu_out + 32'h3]
       };
     end
-    else if (is_sb_type_instr_w) begin
+    else if (instr_opcode == `RV32_JALR_OPCODE && 
+             instr_funct3 == `RV32_JALR_FUNCT3) 
+    begin
+      branch_pc = alu_out;
+      reg_rd_value = pc + 32'h4;
+    end else if (is_sb_type_instr_w) begin
       reg_rd_value = alu_out;
       branch_pc = pc + sb_type_instr_immediate;
     end else if (is_uj_type_instr_w) begin

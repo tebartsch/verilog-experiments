@@ -22,6 +22,9 @@
 `define RV32_LW_OPCODE 7'b0000011
 `define RV32_LW_FUNCT3 3'b010
 
+`define RV32_JALR_OPCODE 7'b1100111
+`define RV32_JALR_FUNCT3 3'b000
+
 // S-type instructions:
 //   
 //   31     25 24  19  14  12 11     7 6    0
@@ -87,7 +90,8 @@ function is_i_type_instr;
   begin
     is_i_type_instr =
       (opcode == `RV32_ADDI_OPCODE && funct3 == `RV32_ADDI_FUNCT3) ||
-      (opcode == `RV32_LW_OPCODE && funct3 == `RV32_LW_FUNCT3);
+      (opcode == `RV32_LW_OPCODE && funct3 == `RV32_LW_FUNCT3) ||
+      (opcode == `RV32_JALR_OPCODE && funct3 == `RV32_JALR_FUNCT3);
   end
 endfunction
 
