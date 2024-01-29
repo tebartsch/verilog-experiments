@@ -29,10 +29,17 @@
 
 // U-type instructions:
 //
+//   31      12 11 6    0
+//   imm[31:12] rd opcode
+
+`define RV32_LUI_OPCODE 7'b0110111
+
+// UJ-type instructions:
+//
 //   31                 12 11 6    0
 //   imm[20|10:1|11|19:12] rd opcode
 
-`define RV32_LUI_OPCODE 7'b0110111
+`define RV32_JAL_OPCODE 7'b1101111
 
 // Helper functions checking for the type of a instruction
 
@@ -74,5 +81,13 @@ function is_u_type_instr;
   begin
     is_u_type_instr =
       (opcode == `RV32_LUI_OPCODE);
+  end
+endfunction
+
+function is_uj_type_instr;
+  input [ 6:0] opcode;
+  begin
+    is_uj_type_instr =
+      (opcode == `RV32_JAL_OPCODE);
   end
 endfunction

@@ -18,23 +18,38 @@ module proc (
   wire [ 4:0] instr_rs2 = instruction[24:20];
   wire [ 6:0] instr_funct7 = instruction[31:25];
 
-  wire is_i_type_instr_w = is_i_type_instr(instr_opcode, instr_funct3);
-  wire is_sb_type_instr_w = is_sb_type_instr(instr_opcode, instr_funct3);
   wire is_r_type_instr_w = is_r_type_instr(instr_opcode, instr_funct3, 
                                            instr_funct7);
+  wire is_i_type_instr_w = is_i_type_instr(instr_opcode, instr_funct3);
+  wire is_sb_type_instr_w = is_sb_type_instr(instr_opcode, instr_funct3);
   wire is_u_type_instr_w = is_u_type_instr(instr_opcode);
+  wire is_uj_type_instr_w = is_uj_type_instr(instr_opcode);
 
-  wire [31:0] branch_pc = pc + sb_type_instr_immediate;
+  reg [31:0] branch_pc;
   wire branch = alu_out_valid && (
-    (instr_opcode == `RV32_BEQ_OPCODE) && 
-    (instr_funct3 == `RV32_BEQ_FUNCT3) &&
-    (reg_rd_value == 32'h0)
+    ((instr_opcode == `RV32_BEQ_OPCODE) &&
+      (instr_funct3 == `RV32_BEQ_FUNCT3) &&
+      (reg_rd_value == 32'h0)) ||
+    (instr_opcode == `RV32_JAL_OPCODE)
   );
+  always @* begin
+    if (is_sb_type_instr_w) begin
+      reg_rd_value = alu_out;
+      branch_pc = pc + sb_type_instr_immediate;
+    end else if (is_uj_type_instr_w) begin
+      reg_rd_value = pc + 32'h4;
+      branch_pc = pc + uj_type_instr_immediate;
+    end else begin
+      reg_rd_value = alu_out;
+      branch_pc = 32'h0;
+    end
+  end
 
-  wire reg_rd_write = alu_out_valid && (
+  assign reg_rd_write = alu_out_valid && (
     is_r_type_instr_w || 
     is_i_type_instr_w ||
-    is_u_type_instr_w
+    is_u_type_instr_w ||
+    is_uj_type_instr_w
   );
 
   //===------------------------------------------------------------------===//
@@ -50,7 +65,8 @@ module proc (
     is_r_type_instr_w || 
     is_i_type_instr_w ||
     is_sb_type_instr_w ||
-    is_u_type_instr_w
+    is_u_type_instr_w ||
+    is_uj_type_instr_w
   );
   always @(posedge clk, posedge rst) begin
     if (rst) begin
@@ -85,7 +101,8 @@ module proc (
   // Register File
   //===------------------------------------------------------------------===//
 
-  wire [31:0] reg_rd_value;
+  wire reg_rd_write;
+  reg [31:0] reg_rd_value;
   wire [31:0] reg_rs1;
   wire [31:0] reg_rs2;
   register_file u_register_file (
@@ -118,6 +135,13 @@ module proc (
   wire [31:0] u_type_instr_immediate = {
     instruction[31:12], 12'h0
   };
+  wire [31:0] uj_type_instr_immediate = {
+    {12{instruction[31]}},
+    instruction[19:12],
+    instruction[20],
+    instruction[30:21],
+    1'b0
+  };
 
   //===------------------------------------------------------------------===//
   // ALU
@@ -127,6 +151,7 @@ module proc (
   // for it to finish before continuing with the next instruction.
   reg alu_in_valid;
   reg alu_out_valid;
+  reg [31:0] alu_out;
 
   // The second input of the ALU is 
   //  -  I-type instr: the immediate value
@@ -152,6 +177,9 @@ module proc (
     end else if (is_u_type_instr_w) begin
       alu_input_a = 32'h0;
       alu_input_b = u_type_instr_immediate;
+    end else if (is_uj_type_instr_w) begin
+      alu_input_a = 32'h0;
+      alu_input_b = uj_type_instr_immediate;
     end else begin
       alu_input_a = 32'h0;
       alu_input_b = 32'h0;
@@ -164,7 +192,7 @@ module proc (
       .a_in(alu_input_a),
       .b_in(alu_input_b),
       .in_valid(alu_in_valid),
-      .out(reg_rd_value),
+      .out(alu_out),
       .out_valid(alu_out_valid)
   );
 
