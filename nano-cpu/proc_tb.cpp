@@ -52,10 +52,10 @@ void dut_load_instr_mem(Vproc *dut, std::string filename) {
     throw std::invalid_argument("Instructions File '" + filename +
                                 "' does not contain a multiple of 4 bytes");
 
-  uint32_t word = 0;
-  for (int i = 0; i < file_size / 4; i += 1) {
-    fread(&word, sizeof(uint32_t), 1, file);
-    dut->instruction_memory[i] = word;
+  uint8_t byte = 0;
+  for (int i = 0; i < file_size; i += 1) {
+    fread(&byte, sizeof(uint8_t), 1, file);
+    dut->instruction_memory[i] = byte;
   }
 
   for (int i = file_size; i < 1024; i++)

@@ -19,6 +19,14 @@
 `define RV32_ADDI_OPCODE 7'b0010011
 `define RV32_ADDI_FUNCT3 3'b000
 
+// SB-type instructions:
+//
+//   31        25 24  19  14  12 11       7  6    0
+//   imm[12|10:5] rs2 rs1 funct3 imm[4:1|11] opcode
+
+`define RV32_BEQ_OPCODE 7'b1100011
+`define RV32_BEQ_FUNCT3 3'b000
+
 // Helper functions checking for the type of a instruction
 
 function is_r_type_instr;
@@ -42,5 +50,14 @@ function is_i_type_instr;
   begin
     is_i_type_instr =
       (opcode == `RV32_ADDI_OPCODE && funct3 == `RV32_ADDI_FUNCT3);
+  end
+endfunction
+
+function is_sb_type_instr;
+  input [ 6:0] opcode;
+  input [ 2:0] funct3;
+  begin
+    is_sb_type_instr =
+      (opcode == `RV32_BEQ_OPCODE && funct3 == `RV32_BEQ_FUNCT3);
   end
 endfunction

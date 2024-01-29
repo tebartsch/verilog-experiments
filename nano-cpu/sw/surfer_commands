@@ -7,7 +7,8 @@ signal_add TOP.proc.instruction
 signal_add TOP.proc.invalid_instr
 signal_add TOP.proc.reg_rs1
 signal_add TOP.proc.reg_rs2
-signal_add TOP.proc.reg_rd
+signal_add TOP.proc.reg_rd_write
+signal_add TOP.proc.reg_rd_value
 
 divider_add
 
