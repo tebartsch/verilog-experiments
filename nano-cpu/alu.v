@@ -42,6 +42,8 @@ module alu (
               case (funct3)
                 3'b001:
                   result = a_in_r << b_in_r;
+                3'b101:
+                  result = a_in_r >> b_in_r;
                 3'b111:
                   result = a_in_r & b_in_r;
                 default: 
