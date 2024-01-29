@@ -23,13 +23,6 @@ module proc (
   wire is_u_type_instr_w = is_u_type_instr(instr_opcode);
   wire is_uj_type_instr_w = is_uj_type_instr(instr_opcode);
 
-  wire funct3_valid = (
-    is_r_type_instr_w ||
-    is_i_type_instr_w ||
-    is_s_type_instr_w ||
-    is_sb_type_instr_w
-  );
-
   wire branch = alu_out_valid && (
     ((instr_opcode == `RV32_BEQ_OPCODE) &&
       (instr_funct3 == `RV32_BEQ_FUNCT3) &&
@@ -240,7 +233,11 @@ module proc (
   alu u_alu (
       .clk(clk),
       .rst(rst),
-      .funct3_valid(funct3_valid),
+      .r_i_s_instr_types(
+        is_r_type_instr_w ||
+        is_i_type_instr_w ||
+        is_s_type_instr_w
+      ),
       .funct3(instr_funct3),
       .a_in(alu_input_a),
       .b_in(alu_input_b),

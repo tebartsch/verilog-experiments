@@ -19,6 +19,9 @@
 `define RV32_ADDI_OPCODE 7'b0010011
 `define RV32_ADDI_FUNCT3 3'b000
 
+`define RV32_SLLI_OPCODE 7'b0010011
+`define RV32_SLLI_FUNCT3 3'b001
+
 `define RV32_ANDI_OPCODE 7'b0010011
 `define RV32_ANDI_FUNCT3 3'b111
 
@@ -96,6 +99,7 @@ function is_i_type_instr;
   begin
     is_i_type_instr =
       (opcode == `RV32_ADDI_OPCODE && funct3 == `RV32_ADDI_FUNCT3) ||
+      (opcode == `RV32_SLLI_OPCODE && funct3 == `RV32_SLLI_FUNCT3) ||
       (opcode == `RV32_LW_OPCODE && funct3 == `RV32_LW_FUNCT3) ||
       (opcode == `RV32_JALR_OPCODE && funct3 == `RV32_JALR_FUNCT3) ||
       (opcode == `RV32_ANDI_OPCODE && funct3 == `RV32_ANDI_FUNCT3);

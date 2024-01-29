@@ -4,7 +4,8 @@ module alu (
     input clk,
     input rst,
 
-    input        funct3_valid,
+    // High if r, i or s instruction is handled
+    input        r_i_s_instr_types,
     input  [2:0] funct3,
 
     input  [31:0]  a_in,
@@ -37,15 +38,17 @@ module alu (
     always @ (in_valid_r, a_in_r, b_in_r) begin
         result = '0;
         if (in_valid_r) begin
-            if (funct3_valid) begin 
+            if (r_i_s_instr_types) begin 
               case (funct3)
+                3'b001:
+                  result = a_in_r << b_in_r;
                 3'b111:
                   result = a_in_r & b_in_r;
                 default: 
                   result = a_in_r + b_in_r;
               endcase
             end else begin
-              result = b_in_r;
+              result = a_in_r + b_in_r;
             end
         end
     end
