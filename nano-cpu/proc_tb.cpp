@@ -2,6 +2,7 @@
 
 #include "Vproc.h"
 #include "Vproc_proc.h"
+#include "Vproc_register_file.h"
 
 #include <fstream>
 #include <iostream>
@@ -101,7 +102,7 @@ int main(int argc, char **argv, char **env) {
 
   if (dump_final_register_state) {
     VlWide<31> registers;
-    dut->proc->get_registers(registers);
+    dut->proc->u_register_file->get_registers(registers);
     std::cout << std::hex;
     std::cout << "ra = 0x" << registers.at(0) << "\n";
     std::cout << "sp = 0x" << registers.at(1) << "\n";
