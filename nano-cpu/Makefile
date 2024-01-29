@@ -41,7 +41,7 @@ obj_dir/stamp.sim_compile-%: obj_dir/stamp.verilate-%
 	@touch obj_dir/stamp.sim_compile-$*
 
 .PRECIOUS: obj_dir/stamp.verilate-%
-obj_dir/stamp.verilate-%: %.v %_tb.cpp
+obj_dir/stamp.verilate-%: %.v %_tb.cpp defs.v
 	@mkdir -p obj_dir
 	verilator \
 	  -Mdir obj_dir/$* \
