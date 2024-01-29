@@ -10,10 +10,12 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 
-#define MAX_SIM_TIME 200
+#define MAX_SIM_TIME 2000
 #define RESET_START 2
 #define RESET_END 5
 #define VERIFICATION_START_TIME 10
+
+#define MEMORY_SIZE 65536
 
 vluint64_t sim_time = 0;
 
@@ -39,6 +41,37 @@ bool get_dump_final_register_state(int &argc, char **&argv) {
   return false;
 }
 
+struct MemorySection {
+  uint32_t start_addr;
+  uint32_t end_addr;
+};
+
+MemorySection get_dump_final_memory_section(int &argc, char **&argv) {
+  std::string section_str;
+  for (int idx = 0; idx < argc; idx++) {
+    std::string str = std::string(argv[idx]);
+    std::string find_str = "--dump-final-memory-section=";
+    auto pos = str.find(find_str);
+    if (pos == 0) {
+      section_str = str.substr(find_str.length(), std::string::npos);
+      auto separator = section_str.find(":");
+      uint32_t start_addr = static_cast<uint32_t>(
+          std::stoi(section_str.substr(0, separator), 0, 16));
+      uint32_t end_addr = static_cast<uint32_t>(
+          std::stoi(section_str.substr(section_str.find(":") + 1), 0, 16));
+      return MemorySection{
+          .start_addr = start_addr,
+          .end_addr = end_addr,
+      };
+    }
+  }
+  // argument not found
+  return MemorySection{
+      .start_addr = 0,
+      .end_addr = 0,
+  };
+}
+
 void dut_load_instr_mem(Vproc *dut, std::string filename) {
   FILE *file = fopen(filename.c_str(), "rb");
   if (!file)
@@ -53,13 +86,13 @@ void dut_load_instr_mem(Vproc *dut, std::string filename) {
                                 "' does not contain a multiple of 4 bytes");
 
   uint8_t byte = 0;
-  for (int i = 0; i < file_size; i += 1) {
+  for (uint32_t addr = 0; addr < file_size; addr += 1) {
     fread(&byte, sizeof(uint8_t), 1, file);
-    dut->instruction_memory[i] = byte;
+    dut->proc->write_memory_byte(addr, byte);
   }
 
-  for (int i = file_size; i < 1024; i++)
-    dut->instruction_memory[i] = 0;
+  for (uint32_t addr = file_size; addr < MEMORY_SIZE; addr++)
+    dut->proc->write_memory_byte(addr, 0);
 }
 
 int main(int argc, char **argv, char **env) {
@@ -67,6 +100,7 @@ int main(int argc, char **argv, char **env) {
   bool dump_vcd = vcd_path != "";
   std::string instructions_path = get_instructions_path(argc, argv);
   bool dump_final_register_state = get_dump_final_register_state(argc, argv);
+  MemorySection memory_section = get_dump_final_memory_section(argc, argv);
 
   Verilated::commandArgs(argc, argv);
   Vproc *dut = new Vproc;
@@ -135,6 +169,22 @@ int main(int argc, char **argv, char **env) {
     std::cout << "t4 = 0x" << registers.at(28) << "\n";
     std::cout << "t5 = 0x" << registers.at(29) << "\n";
     std::cout << "t6 = 0x" << registers.at(30) << "\n";
+    std::cout << std::dec;
+  }
+
+  if (memory_section.start_addr < memory_section.end_addr) {
+    std::cout << std::hex;
+    std::cout << "Memory section [0x" << memory_section.start_addr << ":0x"
+              << memory_section.end_addr << "]\n";
+    for (uint32_t addr = memory_section.start_addr;
+         addr <= memory_section.end_addr; addr += 1) {
+      uint32_t byte;
+      dut->proc->read_memory_byte(addr, byte);
+      if (0 <= addr && addr < MEMORY_SIZE) {
+        std::cout << "0x" << byte << " ";
+      }
+    }
+    std::cout << std::endl;
     std::cout << std::dec;
   }
 

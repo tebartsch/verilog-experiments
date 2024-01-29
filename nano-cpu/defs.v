@@ -19,6 +19,17 @@
 `define RV32_ADDI_OPCODE 7'b0010011
 `define RV32_ADDI_FUNCT3 3'b000
 
+`define RV32_LW_OPCODE 7'b0000011
+`define RV32_LW_FUNCT3 3'b010
+
+// S-type instructions:
+//   
+//   31     25 24  19  14  12 11     7 6    0
+//   imm[11:5] rs2 rs1 funct3 imm[4:0] opcode
+
+`define RV32_SW_OPCODE 7'b0100011
+`define RV32_SW_FUNCT3 3'b010
+
 // SB-type instructions:
 //
 //   31        25 24  19  14  12 11       7  6    0
@@ -58,12 +69,22 @@ function is_r_type_instr;
   end
 endfunction
 
+function is_s_type_instr;
+  input [ 6:0] opcode;
+  input [ 2:0] funct3;
+  begin
+    is_s_type_instr =
+      (opcode == `RV32_SW_OPCODE && funct3 == `RV32_SW_FUNCT3);
+  end
+endfunction
+
 function is_i_type_instr;
   input [ 6:0] opcode;
   input [ 2:0] funct3;
   begin
     is_i_type_instr =
-      (opcode == `RV32_ADDI_OPCODE && funct3 == `RV32_ADDI_FUNCT3);
+      (opcode == `RV32_ADDI_OPCODE && funct3 == `RV32_ADDI_FUNCT3) ||
+      (opcode == `RV32_LW_OPCODE && funct3 == `RV32_LW_FUNCT3);
   end
 endfunction
 
