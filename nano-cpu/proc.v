@@ -28,6 +28,9 @@ module proc (
     ((instr_opcode == `RV32_BEQ_OPCODE) &&
       (instr_funct3 == `RV32_BEQ_FUNCT3) &&
       (reg_rd_value == 32'h0)) ||
+    ((instr_opcode == `RV32_BLT_OPCODE) &&
+      (instr_funct3 == `RV32_BLT_FUNCT3) &&
+      (reg_rd_value[31] == 1'b1)) ||
     (instr_opcode == `RV32_JAL_OPCODE)
   );
   always @* begin

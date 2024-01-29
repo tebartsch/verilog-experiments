@@ -38,6 +38,9 @@
 `define RV32_BEQ_OPCODE 7'b1100011
 `define RV32_BEQ_FUNCT3 3'b000
 
+`define RV32_BLT_OPCODE 7'b1100011
+`define RV32_BLT_FUNCT3 3'b100
+
 // U-type instructions:
 //
 //   31      12 11 6    0
@@ -93,7 +96,8 @@ function is_sb_type_instr;
   input [ 2:0] funct3;
   begin
     is_sb_type_instr =
-      (opcode == `RV32_BEQ_OPCODE && funct3 == `RV32_BEQ_FUNCT3);
+      (opcode == `RV32_BEQ_OPCODE && funct3 == `RV32_BEQ_FUNCT3) ||
+      (opcode == `RV32_BLT_OPCODE && funct3 == `RV32_BLT_FUNCT3);
   end
 endfunction
 
