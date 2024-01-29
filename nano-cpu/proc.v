@@ -22,6 +22,7 @@ module proc (
   wire is_sb_type_instr_w = is_sb_type_instr(instr_opcode, instr_funct3);
   wire is_r_type_instr_w = is_r_type_instr(instr_opcode, instr_funct3, 
                                            instr_funct7);
+  wire is_u_type_instr_w = is_u_type_instr(instr_opcode);
 
   wire [31:0] branch_pc = pc + sb_type_instr_immediate;
   wire branch = alu_out_valid && (
@@ -32,7 +33,8 @@ module proc (
 
   wire reg_rd_write = alu_out_valid && (
     is_r_type_instr_w || 
-    is_i_type_instr_w 
+    is_i_type_instr_w ||
+    is_u_type_instr_w
   );
 
   //===------------------------------------------------------------------===//
@@ -47,7 +49,8 @@ module proc (
   wire invalid_instr = !(
     is_r_type_instr_w || 
     is_i_type_instr_w ||
-    is_sb_type_instr_w
+    is_sb_type_instr_w ||
+    is_u_type_instr_w
   );
   always @(posedge clk, posedge rst) begin
     if (rst) begin
@@ -112,6 +115,9 @@ module proc (
     instruction[7], instruction[30:25], 
     instruction[11:8], 1'b0
   };
+  wire [31:0] u_type_instr_immediate = {
+    instruction[31:12], 12'h0
+  };
 
   //===------------------------------------------------------------------===//
   // ALU
@@ -127,28 +133,35 @@ module proc (
   //  -  R-type instr: register reg_rs2 which is inverted depending on the instr
   //  - SB-type instr: inverted register reg_rs2
   wire invert_alu_input_b = instr_funct7[5];
+  reg [31:0] alu_input_a;
   reg [31:0] alu_input_b;
   always @* begin
-    alu_input_b = 32'h0;
     if (is_r_type_instr_w) begin
+      alu_input_a = reg_rs1;
       if (invert_alu_input_b) begin
         alu_input_b = ~reg_rs2 + 1;
       end else begin
         alu_input_b = reg_rs2;
       end
-    end else 
-    if (is_i_type_instr_w) begin
+    end else if (is_i_type_instr_w) begin
+      alu_input_a = reg_rs1;
       alu_input_b = i_type_instr_immediate;
-    end else
-    if (is_sb_type_instr_w) begin
+    end else if (is_sb_type_instr_w) begin
+      alu_input_a = reg_rs1;
       alu_input_b = ~reg_rs2 + 1;
+    end else if (is_u_type_instr_w) begin
+      alu_input_a = 32'h0;
+      alu_input_b = u_type_instr_immediate;
+    end else begin
+      alu_input_a = 32'h0;
+      alu_input_b = 32'h0;
     end
   end
 
   alu u_alu (
       .clk(clk),
       .rst(rst),
-      .a_in(reg_rs1),
+      .a_in(alu_input_a),
       .b_in(alu_input_b),
       .in_valid(alu_in_valid),
       .out(reg_rd_value),

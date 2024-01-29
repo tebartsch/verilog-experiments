@@ -27,6 +27,13 @@
 `define RV32_BEQ_OPCODE 7'b1100011
 `define RV32_BEQ_FUNCT3 3'b000
 
+// U-type instructions:
+//
+//   31                 12 11 6    0
+//   imm[20|10:1|11|19:12] rd opcode
+
+`define RV32_LUI_OPCODE 7'b0110111
+
 // Helper functions checking for the type of a instruction
 
 function is_r_type_instr;
@@ -59,5 +66,13 @@ function is_sb_type_instr;
   begin
     is_sb_type_instr =
       (opcode == `RV32_BEQ_OPCODE && funct3 == `RV32_BEQ_FUNCT3);
+  end
+endfunction
+
+function is_u_type_instr;
+  input [ 6:0] opcode;
+  begin
+    is_u_type_instr =
+      (opcode == `RV32_LUI_OPCODE);
   end
 endfunction
