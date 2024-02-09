@@ -10,12 +10,12 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 
-#define MAX_SIM_TIME 2000
+#define MAX_SIM_TIME 25000
 #define RESET_START 2
 #define RESET_END 5
-#define VERIFICATION_START_TIME 10
 
-#define MEMORY_SIZE 65536
+#define ENTRY_ADRESS 0x10000
+#define MEMORY_SIZE 0x20000
 
 vluint64_t sim_time = 0;
 
@@ -30,6 +30,19 @@ std::string get_instructions_path(int &argc, char **&argv) {
     }
   }
   return instructions_path;
+}
+
+std::string get_log_instructions_path(int &argc, char **&argv) {
+  std::string log_instructions_path;
+  for (int idx = 0; idx < argc; idx++) {
+    std::string str = std::string(argv[idx]);
+    std::string find_str = "--log-instructions=";
+    auto pos = str.find(find_str);
+    if (pos == 0) {
+      log_instructions_path = str.substr(find_str.length(), std::string::npos);
+    }
+  }
+  return log_instructions_path;
 }
 
 bool get_dump_final_register_state(int &argc, char **&argv) {
@@ -86,12 +99,13 @@ void dut_load_instr_mem(Vproc *dut, std::string filename) {
                                 "' does not contain a multiple of 4 bytes");
 
   uint8_t byte = 0;
-  for (uint32_t addr = 0; addr < file_size; addr += 1) {
+  for (uint32_t addr = ENTRY_ADRESS; addr < ENTRY_ADRESS + file_size;
+       addr += 1) {
     fread(&byte, sizeof(uint8_t), 1, file);
     dut->proc->write_memory_byte(addr, byte);
   }
 
-  for (uint32_t addr = file_size; addr < MEMORY_SIZE; addr++)
+  for (uint32_t addr = ENTRY_ADRESS + file_size; addr < MEMORY_SIZE; addr++)
     dut->proc->write_memory_byte(addr, 0);
 }
 
@@ -99,6 +113,8 @@ int main(int argc, char **argv, char **env) {
   std::string vcd_path = get_vcd_path(argc, argv);
   bool dump_vcd = vcd_path != "";
   std::string instructions_path = get_instructions_path(argc, argv);
+  std::string log_instructions_path = get_log_instructions_path(argc, argv);
+  bool dump_instructions = log_instructions_path != "";
   bool dump_final_register_state = get_dump_final_register_state(argc, argv);
   MemorySection memory_section = get_dump_final_memory_section(argc, argv);
 
@@ -115,12 +131,36 @@ int main(int argc, char **argv, char **env) {
   if (instructions_path != "none")
     dut_load_instr_mem(dut, instructions_path);
 
+  std::ofstream log_instructions_file;
+  if (dump_instructions) {
+    log_instructions_file.open(log_instructions_path);
+  }
+
+  bool dump_instr_on_next_pos_edge = true;
   while (sim_time < MAX_SIM_TIME) {
     // Reset dut before starting tests
     if (RESET_START <= sim_time && sim_time < RESET_END)
       dut->rst = 1;
     else
       dut->rst = 0;
+
+    // Dump instruction
+    if (dut->clk && RESET_END <= sim_time && dump_instructions) {
+      bool alu_in_valid;
+      dut->proc->get_alu_in_valid(alu_in_valid);
+      if (alu_in_valid) {
+        uint32_t pc, instr;
+        dut->proc->get_pc(pc);
+        dut->proc->get_instruction(instr);
+        log_instructions_file << std::hex;
+        log_instructions_file << "core   0: 0x" << std::setfill('0')
+                              << std::setw(8) << pc << " ";
+        log_instructions_file << "(0x" << std::setfill('0') << std::setw(8)
+                              << instr << ") ";
+        log_instructions_file << "DASM(" << std::setfill('0') << std::setw(8)
+                              << instr << ")\n";
+      }
+    }
 
     // Evaluate next cycle
     dut->clk ^= 1;
@@ -133,6 +173,10 @@ int main(int argc, char **argv, char **env) {
 
   if (dump_vcd)
     m_trace->close();
+
+  if (dump_instructions) {
+    log_instructions_file.close();
+  }
 
   if (dump_final_register_state) {
     VlWide<31> registers;

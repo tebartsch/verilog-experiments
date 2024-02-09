@@ -1,16 +1,17 @@
-  addi t0, zero, 0x4
-  jalr ra, 0xc(t0)
+  addi t0, zero, 0x0
+  lui t0, 0x10
+  jalr ra, 0x14(t0)
   addi t1, zero, 0x3
   addi t2, zero, 0x3
   addi t3, zero, 0x3
   addi t4, zero, 0x3
   addi t5, zero, 0x3
 
-# CHECK: ra = 0x8
+# CHECK: ra = 0x1000c
 # CHECK: sp = 0x0
 # CHECK: gp = 0x0
 # CHECK: tp = 0x0
-# CHECK: t0 = 0x4
+# CHECK: t0 = 0x10000
 # CHECK: t1 = 0x0
 # CHECK: t2 = 0x0
 # CHECK: s0 = 0x0

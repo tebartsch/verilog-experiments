@@ -3,6 +3,7 @@
 MODULES := proc alu
 
 RISCV_GNU_TOOLCHAIN_VERSION := 8c969a9efe68a811cf524174d25255632029f3d3
+RISCV_ISA_SIM_VERSION := 3a53c80ade3336b1d46c9db3a6c6be8311c32cc5
 
 RISCV := $(abspath sw/riscv-tools)
 MKFILE_ABSDIR := $(abspath .)
@@ -73,6 +74,10 @@ sw-test: sw/proc-run sw
 sw/%-run: sw/proc-run
 	$(MAKE) -C sw $*-run
 
+# Run a program in directory `sw` using spike
+sw/%-run-spike:
+	$(MAKE) -C sw $*-run-spike
+
 # View waveforms for a program in directory `sw`
 sw/%-waves: sw/proc-run
     # Remove existing waveform file since the processor simulator binary
@@ -103,6 +108,20 @@ riscv-tools:
 	    --disable-linux \
 		--disable-gdb
 	$(MAKE) -C sw/riscv-gnu-toolchain/build
+
+    # Spike
+	if [ -d sw/riscv-isa-sim ]; then \
+	  git -C sw/riscv-isa-sim fetch; \
+	else \
+	  git clone https://github.com/riscv-software-src/riscv-isa-sim \
+	    sw/riscv-isa-sim; \
+	fi
+	git -C sw/riscv-isa-sim checkout $(RISCV_ISA_SIM_VERSION)
+	mkdir -p sw/riscv-isa-sim/build
+	cd sw/riscv-isa-sim/build && \
+	  ../configure --prefix=$(RISCV)
+	$(MAKE) -C sw/riscv-isa-sim/build
+	$(MAKE) -C sw/riscv-isa-sim/build install
 
 .PHONY: clean
 clean:

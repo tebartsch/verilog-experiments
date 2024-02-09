@@ -1,3 +1,6 @@
+`define ENTRY_ADDR 32'h10000
+`define MEMORY_SIZE 32'h20000
+
 // R-type instructions:
 //   
 //   31     24  19  14  12 11 6    0

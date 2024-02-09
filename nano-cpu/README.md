@@ -63,4 +63,4 @@ make sw/<testname>
 ```
 
 where `<testname>` is the name of the program in the `sw` directory, 
-i.e. `addi`.
+i.e. `addi.S`.

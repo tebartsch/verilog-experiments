@@ -4,7 +4,7 @@
 label:
   addi t2, zero, 0x3
 
-# CHECK: ra = 0x8
+# CHECK: ra = 0x10008
 # CHECK: sp = 0x0
 # CHECK: gp = 0x0
 # CHECK: tp = 0x0

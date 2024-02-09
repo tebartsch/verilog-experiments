@@ -93,12 +93,12 @@ module proc (
   );
   always @(posedge clk, posedge rst) begin
     if (rst) begin
-      pc <= 32'h0;
+      pc <= `ENTRY_ADDR;
       instruction <= {
-        memory[32'h3],
-        memory[32'h2],
-        memory[32'h1],
-        memory[32'h0]
+        memory[`ENTRY_ADDR + 32'h3],
+        memory[`ENTRY_ADDR + 32'h2],
+        memory[`ENTRY_ADDR + 32'h1],
+        memory[`ENTRY_ADDR + 32'h0]
       };
       alu_in_valid <= 1'b1;
     end else begin
@@ -130,10 +130,6 @@ module proc (
       end
     end
   end
-
-  /* verilator lint_off UNUSED */
-  wire [7:0] test = memory[32'h50];
-  /* verilator lint_on UNUSED */
 
   //===------------------------------------------------------------------===//
   // Register File
@@ -251,7 +247,30 @@ module proc (
   //===------------------------------------------------------------------===//
 
   // TODO: For now programs are put into this memory via verilator simulation
-  reg [7:0] memory[0:65535];
+  reg [7:0] memory[0:`MEMORY_SIZE];
+
+  //===------------------------------------------------------------------===//
+  // Interfaces for Simulatoin
+  //===------------------------------------------------------------------===//
+
+`ifdef verilator
+  task get_alu_in_valid;
+      /* verilator public */
+      output _alu_in_valid = alu_in_valid;
+  endtask
+`endif
+`ifdef verilator
+  task get_pc;
+      /* verilator public */
+      output [31:0] _pc = pc;
+  endtask
+`endif
+`ifdef verilator
+  task get_instruction;
+      /* verilator public */
+      output [31:0] _instruction = instruction;
+  endtask
+`endif
 
   // Export function to read memory in verilator simulation
 `ifdef verilator
@@ -262,7 +281,7 @@ module proc (
       input [31:0] address;
       /* verilator lint_on UNUSED */
       output [7:0] data;
-      data = memory[address[15:0]];
+      data = memory[address[17:0]];
   endtask
 `endif
 
@@ -275,7 +294,7 @@ module proc (
       input [31:0] address;
       /* verilator lint_on UNUSED */
       input [7:0] data;
-      memory[address[15:0]] = data;
+      memory[address[17:0]] = data;
   endtask
 `endif
 
