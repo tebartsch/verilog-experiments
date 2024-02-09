@@ -2,15 +2,27 @@
 
 ## Dependecnies
 
-- `verilator`. Install on Fedora/RHEL with
-  
+- `verilator`
+
+  Install on MacOS using homebrew
+  ```bash
+  brew install verilator
+  ```
+
+  Install on Fedora/RHEL with
   ```bash
   dnf install verilator
   ```
 
-- `surfer`: A waveform viewer that can be installed with
-
+- `surfer`
+   
+  A waveform viewer that can be installed with
   ```bash
+  # Install rust on MacOS using homebrew
+  brew install rust
+  # On Linux install with rustup (https://rustup.rs/)
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  # Install surfer using cargo
   cargo install \
   --git https://gitlab.com/surfer-project/surfer \
   --rev bfa7b6d603e6d8b160859dd4fdf668742371f4c8 \

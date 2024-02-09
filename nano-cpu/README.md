@@ -18,13 +18,30 @@ Sources:
 
 ## Packages
 
-Fedora/RHEL:
+MacOS:
+```bash
+# Use recent version of clang and provide FileCheck tool
+brew install llvm
+# riscv-gnu-toolchain dependencies
+brew install python3 gawk gnu-sed flock texinfo gmp isl libmpc mpfr zstd
+# Install gnu tools
+brew install coreutils make
+```
 
+Fedora/RHEL:
 ```bash
 dnf install llvm # Provides FileCheck tool
+# riscv-gnu-toolchain dependencies
+dnf install autoconf automake python3 libmpc-devel mpfr-devel gmp-devel gawk  bison flex texinfo patchutils gcc gcc-c++ zlib-devel expat-devel
 ```
 
 ## Build
+
+On MacOS:
+```bash
+# Provide FileCheck
+export PATH="$PATH:/opt/homebrew/opt/llvm/bin"
+```
 
 ```bash
 # This builds the verilator simulation executable of the processor as well as
