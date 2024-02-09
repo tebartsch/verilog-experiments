@@ -99,7 +99,9 @@ riscv-tools:
 	cd sw/riscv-gnu-toolchain/build && \
 	  ../configure --prefix=$(RISCV) \
 	    --with-arch=rv32i --with-abi=ilp32 \
-	    --disable-linux
+		--with-cmodel=medany \
+	    --disable-linux \
+		--disable-gdb
 	$(MAKE) -C sw/riscv-gnu-toolchain/build
 
 .PHONY: clean
