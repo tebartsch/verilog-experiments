@@ -44,10 +44,10 @@ module proc (
     begin
       // Read memory if instruction is load
       reg_rd_value = {
-        memory[alu_out + 32'h0],
-        memory[alu_out + 32'h1],
+        memory[alu_out + 32'h3],
         memory[alu_out + 32'h2],
-        memory[alu_out + 32'h3]
+        memory[alu_out + 32'h1],
+        memory[alu_out + 32'h0]
       };
     end
     else if (instr_opcode == `RV32_JALR_OPCODE && 
@@ -121,10 +121,10 @@ module proc (
           if ((instr_opcode == `RV32_SW_OPCODE && 
                instr_funct3 == `RV32_SW_FUNCT3))
           begin
-            memory[alu_out + 32'h3] <= reg_rs2[7:0];
-            memory[alu_out + 32'h2] <= reg_rs2[15:8];
-            memory[alu_out + 32'h1] <= reg_rs2[23:16];
-            memory[alu_out + 32'h0] <= reg_rs2[31:24];
+            memory[alu_out + 32'h3] <= reg_rs2[31:24];
+            memory[alu_out + 32'h2] <= reg_rs2[23:16];
+            memory[alu_out + 32'h1] <= reg_rs2[15:8];
+            memory[alu_out + 32'h0] <= reg_rs2[7:0];
           end
         end
       end
