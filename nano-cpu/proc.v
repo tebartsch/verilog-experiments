@@ -93,7 +93,7 @@ module proc (
   );
   always @(posedge clk, posedge rst) begin
     if (rst) begin
-      pc <= '0;
+      pc <= 32'h0;
       instruction <= {
         memory[32'h3],
         memory[32'h2],

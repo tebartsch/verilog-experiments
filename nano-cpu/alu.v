@@ -24,9 +24,9 @@ module alu (
     // Register all inputs
     always @ (posedge clk, posedge rst) begin
         if (rst) begin
-            a_in_r      <= '0;
-            b_in_r      <= '0;
-            in_valid_r  <= '0;
+            a_in_r      <= 32'h0;
+            b_in_r      <= 32'h0;
+            in_valid_r  <= 1'b0;
         end else begin
             a_in_r     <= a_in;
             b_in_r     <= b_in;
@@ -35,8 +35,8 @@ module alu (
     end
 
     // Compute the result
-    always @ (in_valid_r, a_in_r, b_in_r) begin
-        result = '0;
+    always @* begin
+        result = 32'h0;
         if (in_valid_r) begin
             if (r_i_s_instr_types) begin 
               case (funct3)
@@ -58,8 +58,8 @@ module alu (
     // Register outputs
     always @ (posedge clk, posedge rst) begin
         if (rst) begin
-            out       <= '0;
-            out_valid <= '0;
+            out       <= 32'h0;
+            out_valid <= 1'b0;
         end else begin
             out       <= result;
             out_valid <= in_valid_r;

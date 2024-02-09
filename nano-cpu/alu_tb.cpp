@@ -67,7 +67,7 @@ public:
           error_count++;
         }
       case 0b111:
-        if (in->a & in->b != tx->out) {
+        if ((in->a & in->b) != tx->out) {
           std::cerr << std::endl;
           std::cerr << "AluScb: & mismatch" << std::endl;
           std::cerr << "  Expected: " << (in->a & in->b)
@@ -76,7 +76,7 @@ public:
           error_count++;
         }
       default:
-        if (in->a + in->b != tx->out) {
+        if ((in->a + in->b) != tx->out) {
           std::cerr << std::endl;
           std::cerr << "AluScb: add mismatch" << std::endl;
           std::cerr << "  Expected: " << in->a + in->b
@@ -86,7 +86,7 @@ public:
         }
       }
     } else {
-      if (in->a + in->b != tx->out) {
+      if ((in->a + in->b) != tx->out) {
         std::cerr << std::endl;
         std::cerr << "AluScb: default op (add) mismatch" << std::endl;
         std::cerr << "  Expected: " << in->a + in->b << "  Actual: " << tx->out
